@@ -3,11 +3,11 @@
 Small flask app
 
 This flask app provides a simple endpoint to get the text from a VM running on vShpere. `http://<server>:5000/vm_text/<VM_NAME>`
-Under the hood the app connects to the vCenter, searches for the VM and greates a screenshot. 
-After the screenshot is done, the screen shot will be downloaded into the memmory and deleted on the datastore.
-Tesseract-ocr is as an OCR tool to get to the text. For a better result, the screenshot is manipulated in an extremely basic way.
+Under the hood the app connects to the vCenter, searches for the VM and creates a screenshot. 
+After the screenshot is done, the screenshot will be downloaded into the memmory and deleted on the datastore.
+Tesseract-ocr is used as an OCR tool to get to the text. For a better result, the screenshot is manipulated in an extremely basic way.
 
-**This is a PoC and no big effort is put into this (yet)**
+**This is a PoC, and no great efforts are (yet) being made.**
 
 Example VM console screen
 ![Example VM screenshot](vm_screenshot.png)
