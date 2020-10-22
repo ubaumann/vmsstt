@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def wait_until_sucess(task, retry=5, factor=2.0) -> None:
+    """Check if task is success or wait seconds * factor"""
     seconds = 1
     for _ in range(retry):
         if task.info.state == "success":
@@ -28,6 +29,10 @@ def wait_until_sucess(task, retry=5, factor=2.0) -> None:
 
 
 class ScreenShot(object):
+    """
+    Object to create screenshot on vCenter and download the picute
+    """
+
     def __init__(self, vm_name, host, user, password, port=443, verify=True) -> None:
         self._vcenter = None
         self._vm = None
@@ -40,6 +45,7 @@ class ScreenShot(object):
         self.verify = verify
 
     def connect(self) -> None:
+        """Connect to the vCenter"""
         connection_details = {
             "host": self.host,
             "user": self.user,
@@ -54,6 +60,7 @@ class ScreenShot(object):
             logger.debug("Not secure connected to %s", self.host)
 
     def search(self) -> None:
+        """Search for the VM object"""
         content = self._vcenter.RetrieveContent()
         self._vm = content.searchIndex.FindByDnsName(
             dnsName=self.vm_name, vmSearch=True
@@ -61,6 +68,7 @@ class ScreenShot(object):
         logger.debug("Searched for %s. Found VM %s", self.vm_name, self._vm.name)
 
     def _get_datacenter(self) -> str:
+        """Internal fuction for searching the datacenter name"""
         parent = self._vm.parent
         while True:
             logger.debug("Looking for the datacenter. Level: %s", parent.name)
@@ -69,10 +77,18 @@ class ScreenShot(object):
             parent = parent.parent
 
     def _power_on(self) -> bool:
+        """Check if VM is powerd on"""
         logger.debug("PowerState is %s", self._vm.summary.runtime.powerState)
         return self._vm.summary.runtime.powerState == "poweredOn"
 
     def get(self) -> Image.Image:
+        """
+        1. Create Screenshot Task
+        2. Wait for task to become successful
+        3. Build picture URL
+        4. Download picture
+        5. Return PIL Image object
+        """
         if self._power_on():
             task = self._vm.CreateScreenshot()
             wait_until_sucess(task)
@@ -92,6 +108,7 @@ class ScreenShot(object):
         raise Exception("VM not running")
 
     def delete(self) -> None:
+        """Delete picture file on datastore"""
         logger.debug("Deleting url: %s", self._image_url)
         response = requests.delete(
             url=self._image_url, auth=(self.user, self.password), verify=self.verify
@@ -99,5 +116,6 @@ class ScreenShot(object):
         logger.debug("Delete response: %s", response)
 
     def disconnect(self) -> None:
+        """Close session to vCenter"""
         connect.Disconnect(self._vcenter)
         logger.debug("Disconnected from %s", self.host)
